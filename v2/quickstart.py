@@ -21,7 +21,8 @@ import os
 
 from apiclient import errors
 
-import time
+from time import strftime, strptime
+from datetime import timedelta
 
 try:
     import argparse
@@ -113,9 +114,12 @@ def main():
     service = discovery.build('calendar', 'v3', http=http)
 
     now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
-    print('Getting the upcoming 10 events')
+    three_weeks_from_now = datetime.datetime.utcnow() + timedelta(days=21)
+    three_weeks_from_now = three_weeks_from_now.isoformat() + 'Z'
+
+    print('Getting all the events in the next three weeks')
     eventsResult = service.events().list(
-        calendarId='fabhub.io_5mietl2ubcfslni3ltlr61n28c@group.calendar.google.com', timeMin=now, maxResults=10, singleEvents=True,
+        calendarId='fabhub.io_5mietl2ubcfslni3ltlr61n28c@group.calendar.google.com', timeMin=now, timeMax=three_weeks_from_now, singleEvents=True,
         orderBy='startTime').execute()
     events = eventsResult.get('items', [])
 
@@ -130,37 +134,44 @@ def main():
         end = event['end'].get('date')
         raw_event_array.append([event['start'], event['end'], event['summary']])
         # event_array.append(event['summary'])
-    
-    print(event_array)
 
     email_service = discovery.build('gmail', 'v1', http=http)
 
-    for event in event_array:
-        start_date = event[0]
-        if "dateTime" in start_date.keys():
-            date_time = str(start_date['dateTime'])
-            temp_date = date_time[:10]
-            print(temp_date)
-            date_format = time.strptime(temp_date, "%Y-%m-%d")
+    for event in raw_event_array:
 
-            event[0]['dateTime'] = date_format
+        start_end = []
 
-    print(event_array)
+        for n in [0, 1]:
 
+            test_date = event[n]
 
+            if "dateTime" in test_date.keys():
+                date_time = str(test_date['dateTime'])
+                temp_date = date_time[:10]
+                date_format = strptime(temp_date, "%Y-%m-%d")
 
-    search_words = ["holiday", "Holiday", "HOLIDAY", "off", "OFF", "Off", "Away", "AWAY", "away", "out", "OUT", "Out"]
-    email_string = ""
+            else:
+                date_time = str(test_date['date'])
+                date_format = strptime(date_time, "%Y-%m-%d")
+
+            start_end.append(strftime("%a, %d %b %Y", date_format))
+
+        event_array.append([start_end[0], start_end[1], event[2]])
+
+    # print(event_array)
+
+    search_words = ["holiday", "Holiday", "HOLIDAY", "off", "OFF", "Off", "Away", "AWAY", "away", "out", "OUT", "Out", "leave", "Leave", "LEAVE"]
+    email_string = "Good morning Opendesk, Basil here, your friendly holiday manager, in the next three weeks these lucky people are on holiday;\n\n"
     for event in event_array:
         for word in search_words:
             if word in str(event[2]):
-                email_string = email_string + str(event[2])
-                email_string = email_string + "\n"
+                email_string = email_string + str(event[2]) + " from " + event[0] + " until " + event[1]
+                email_string = email_string + "\n\n"
 
     # create_message(sender, to, subject, message_text):
-    # email_message = create_message("harry@opendesk.cc", "harrykeen18@gmail.com", "upcoming events now", email_string)
+    email_message = create_message("harry@opendesk.cc", "internal@opendesk.cc", "Who's on holiday?", email_string)
 
-    # send_message(email_service, "harry@opendesk.cc", email_message)
+    send_message(email_service, "harry@opendesk.cc", email_message)
 
 if __name__ == '__main__':
     main()
