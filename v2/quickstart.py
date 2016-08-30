@@ -164,9 +164,13 @@ def main():
     email_string = "Good morning Opendesk, Basil here, your friendly holiday manager, in the next three weeks these lucky people are on holiday;\n\n"
     for event in event_array:
         for word in search_words:
-            if word in str(event[2]):
-                email_string = email_string + str(event[2]) + " from " + event[0] + " until " + event[1]
-                email_string = email_string + "\n\n"
+            try:
+                if word in str(event[2]):
+
+                    email_string = email_string + str(event[2]) + " from " + event[0] + " back on " + event[1]
+                    email_string = email_string + "\n\n"
+            except:
+                print("error, ascii error probably")
 
     # create_message(sender, to, subject, message_text):
     email_message = create_message("harry@opendesk.cc", "internal@opendesk.cc", "Who's on holiday?", email_string)
