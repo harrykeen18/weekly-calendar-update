@@ -160,7 +160,7 @@ def main():
 
     # print(event_array)
 
-    search_words = ["holiday", "Holiday", "HOLIDAY", "off", "OFF", "Off", "Away", "AWAY", "away", "out", "OUT", "Out", "leave", "Leave", "LEAVE"]
+    search_words = ["holiday", "Holiday", "HOLIDAY", "off", "OFF", "Off", "Away", "AWAY", "away", "out", "OUT", "Out", "leave", "Leave", "LEAVE", "Shanghai", "shanghai", "China", "china"]
     email_string = "Good morning Opendesk, Basil here, your friendly holiday manager, in the next three weeks these lucky people are on holiday;\n\n"
     for event in event_array:
         for word in search_words:
