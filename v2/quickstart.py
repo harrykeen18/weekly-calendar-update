@@ -22,7 +22,9 @@ import os
 from apiclient import errors
 
 from time import strftime, strptime
+import time
 from datetime import timedelta
+import schedule
 
 try:
     import argparse
@@ -173,9 +175,18 @@ def main():
                 print("error, ascii error probably")
 
     # create_message(sender, to, subject, message_text):
-    email_message = create_message("harry@opendesk.cc", "internal@opendesk.cc", "Who's on holiday?", email_string)
+    email_message = create_message("basil@opendesk.cc", "internal@opendesk.cc", "Who's on holiday?", email_string)
 
     send_message(email_service, "harry@opendesk.cc", email_message)
 
+
+def run():
+
+    schedule.every().monday.at("09:00").do(main)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(61) # wait one minute
+
 if __name__ == '__main__':
-    main()
+    run()
